@@ -1,0 +1,952 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Oman Hosted Cloud AI — DigitalOman.ai</title>
+<meta name="description" content="Single-tenant LLM inference hosted in Oman. Your own instance, an OpenAI-compatible API, 50 OMR a month flat.">
+<link rel="icon" href="images/mark.png">
+<link rel="stylesheet" href="fonts/fonts-inline.css">
+<style>
+:root{
+  --ink:#241547;
+  --ink-soft:#6b5b95;
+  --pur:#7c3aed;
+  --pur-lt:#a78bfa;
+  --lav:#c9b8f0;
+  --peach:#f7cfae;
+  --paper:#fdfcff;
+  --cy:#00BCD4;
+  --ok:#16a34a;
+  --no:#e11d48;
+  --amber:#d97706;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{background:var(--paper);scroll-behavior:auto}
+body{font-family:Inter,system-ui,sans-serif;color:var(--ink);background:var(--paper);
+     -webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{display:block;max-width:100%}
+
+/* ── the shared scaffold ──────────────────────────────────────────────*/
+.sec{position:relative;width:100%}
+.stage{position:fixed;inset:0;height:100vh;width:100%;overflow:hidden;
+       display:flex;align-items:center;justify-content:center;
+       opacity:0;pointer-events:none;will-change:opacity}
+.layer{position:absolute;inset:0;overflow:hidden}
+.paperbg{position:absolute;inset:0;background:var(--paper)}
+.plate{position:absolute;inset:-8%;background-size:cover;background-position:center;
+       will-change:transform,opacity}
+.wash{position:absolute;inset:0;pointer-events:none}
+.blob{position:absolute;border-radius:50%;filter:blur(90px);will-change:transform,opacity}
+.fog{position:absolute;left:-10%;right:-10%;bottom:-16%;height:52%;
+     filter:blur(64px);will-change:transform,opacity;
+     background:radial-gradient(ellipse 40% 100% at 18% 100%,#b9a3e8 0%,transparent 70%),
+                radial-gradient(ellipse 44% 100% at 48% 100%,#c9b8f0 0%,transparent 72%),
+                radial-gradient(ellipse 40% 100% at 82% 100%,#bda9ea 0%,transparent 70%)}
+
+/* ── type ─────────────────────────────────────────────────────────────*/
+.line{position:absolute;left:50%;top:50%;width:0;height:0;white-space:nowrap}
+.w{position:absolute;left:0;top:0;transform-origin:0 50%;
+   will-change:transform,opacity,filter;white-space:pre}
+.t-hero{font-size:clamp(32px,5.2vw,86px);font-weight:600;letter-spacing:-.03em}
+.t-big{font-size:clamp(38px,7vw,120px);font-weight:700;letter-spacing:-.04em}
+.pur{color:var(--pur)}
+.mono{font-family:"JetBrains Mono",monospace}
+.kick{font-size:clamp(11px,1.05vw,17px);font-weight:600;letter-spacing:.32em;
+      text-transform:uppercase;color:var(--pur)}
+.sub{font-size:clamp(14px,1.65vw,28px);font-weight:400;color:var(--ink-soft);line-height:1.5}
+
+/* ── invoices dealt onto the table (S1) ───────────────────────────────*/
+.inv{position:absolute;border-radius:12px;background:#fff;overflow:hidden;
+     border:1px solid rgba(120,90,200,.13);
+     box-shadow:0 20px 50px rgba(70,40,130,.16);will-change:transform,opacity;
+     padding:clamp(10px,1.15vw,20px) clamp(12px,1.35vw,24px)}
+.inv .m{font-size:clamp(8px,.78vw,12px);letter-spacing:.2em;text-transform:uppercase;
+     color:#a99fc4;font-weight:600}
+.inv .v{font-size:clamp(17px,2.1vw,36px);font-weight:700;letter-spacing:-.03em;
+     color:var(--amber);margin-top:.25em;font-variant-numeric:tabular-nums}
+.inv .r{margin-top:.5em;height:1px;background:rgba(120,90,200,.14)}
+
+/* ── the two lines (S2) ───────────────────────────────────────────────*/
+.chart{position:absolute;will-change:opacity}
+.chart svg{overflow:visible}
+.chart .grid{stroke:rgba(120,90,200,.16);stroke-width:1}
+.chart .jag{fill:none;stroke:var(--amber);stroke-width:3;stroke-linecap:round;
+     stroke-linejoin:round}
+.chart .flat{fill:none;stroke:var(--pur);stroke-width:4;stroke-linecap:round}
+.clab{position:absolute;font-size:clamp(10px,1.05vw,17px);font-weight:600;
+     white-space:nowrap;will-change:opacity,transform}
+
+/* ── split comparison (S4) ────────────────────────────────────────────*/
+.pane{position:absolute;top:0;bottom:0;overflow:hidden;will-change:opacity}
+.paneIn{position:absolute;inset:0;display:flex;flex-direction:column;
+     align-items:center;justify-content:flex-start;gap:clamp(8px,1.2vh,18px);padding:0 4%}
+.ptag{font-size:clamp(13px,3.9vw,22px);font-weight:700;letter-spacing:.13em;
+     text-transform:uppercase;text-align:center;line-height:1.28}
+.tile{border-radius:8px;will-change:transform,opacity}
+.divider{position:absolute;top:12%;bottom:12%;width:1px;
+     background:linear-gradient(180deg,transparent,rgba(120,90,200,.34),transparent)}
+
+/* ── code card (S5) ───────────────────────────────────────────────────*/
+.term{position:absolute;border-radius:16px;overflow:hidden;background:#fff;
+      border:1px solid rgba(120,90,200,.16);
+      box-shadow:0 40px 100px rgba(60,35,120,.20);will-change:transform,opacity}
+.term .bar{height:clamp(30px,3.4vh,44px);background:#faf8ff;display:flex;align-items:center;
+      gap:8px;padding:0 clamp(12px,1.2vw,18px);border-bottom:1px solid rgba(120,90,200,.10)}
+.term .dot{width:9px;height:9px;border-radius:50%;flex:none}
+.term .ttl{margin-left:8px;font-size:clamp(10px,.95vw,14px);color:#9a8fbe;font-weight:500;
+      font-family:"JetBrains Mono",monospace}
+.term .body{padding:clamp(14px,1.9vw,30px) clamp(16px,2.1vw,34px);
+      font-family:"JetBrains Mono",monospace;line-height:1.8;
+      color:#3f3663;white-space:pre;overflow:hidden}
+.k{color:#7c3aed}.s{color:#0f766e}.c{color:#a99fc4}.f{color:#0369a1}
+.del{color:#b9455f;background:rgba(225,29,72,.07);text-decoration:line-through;
+     text-decoration-thickness:1px;display:inline-block;border-radius:3px}
+.add{color:#166534;background:rgba(22,163,74,.09);font-weight:700;
+     display:inline-block;border-radius:3px}
+.cur{display:inline-block;width:2px;height:1em;background:var(--pur);
+     vertical-align:-2px;margin-left:1px}
+
+/* ── the ledger (S6) ──────────────────────────────────────────────────*/
+.ledger{position:absolute;left:50%;top:50%;width:min(94vw,1120px);
+   transform:translate(-50%,-50%);display:grid;
+   grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));
+   gap:clamp(9px,1.2vw,18px)}
+.lrow{display:flex;align-items:flex-start;gap:clamp(9px,1vw,15px);
+   padding:clamp(12px,1.45vw,23px) clamp(13px,1.5vw,25px);border-radius:14px;
+   background:#fff;border:1px solid rgba(120,90,200,.13);
+   box-shadow:0 14px 36px rgba(70,40,130,.09);
+   will-change:transform,opacity;text-align:left}
+.lrow .m{flex:none;width:clamp(19px,1.9vw,28px);height:clamp(19px,1.9vw,28px);
+   border-radius:50%;display:flex;align-items:center;justify-content:center;
+   font-weight:700;font-size:clamp(10px,1.05vw,16px)}
+.lrow.y .m{background:rgba(22,163,74,.12);color:var(--ok)}
+.lrow.n .m{background:rgba(225,29,72,.10);color:var(--no)}
+.lrow .t{font-size:clamp(12px,1.26vw,21px);font-weight:600;line-height:1.35}
+.lrow .d{font-size:clamp(10px,1.0vw,16px);color:var(--ink-soft);margin-top:5px;
+   line-height:1.45;font-weight:400}
+
+/* ── the endpoint spine (S7) ──────────────────────────────────────────*/
+.spine{position:absolute;border-radius:999px;background:var(--pur);
+   box-shadow:0 10px 40px rgba(124,58,237,.34);will-change:opacity,transform}
+.node{position:absolute;border-radius:999px;background:#fff;white-space:nowrap;
+   overflow:hidden;text-overflow:ellipsis;
+   font-size:clamp(10px,1.05vw,16px);font-weight:600;color:var(--ink);
+   padding:clamp(7px,.72vw,12px) clamp(12px,1.3vw,22px);
+   border:1px solid rgba(120,90,200,.16);
+   box-shadow:0 12px 30px rgba(70,40,130,.13);will-change:transform,opacity}
+.wire{position:absolute;width:2px;border-radius:2px;
+   background:linear-gradient(180deg,rgba(124,58,237,.10),rgba(124,58,237,.55));
+   will-change:opacity,height}
+
+/* ── chrome ───────────────────────────────────────────────────────────*/
+#mark{position:fixed;left:clamp(14px,1.7vw,28px);top:clamp(13px,1.5vw,24px);z-index:90;
+  display:flex;align-items:center;gap:9px;font-size:clamp(12px,1vw,15px);font-weight:700;
+  letter-spacing:-.01em;color:var(--ink);opacity:.66;mix-blend-mode:multiply;
+  pointer-events:none}
+#mark img{width:clamp(19px,1.6vw,24px);height:clamp(19px,1.6vw,24px);
+  filter:saturate(1.9) brightness(.5)}
+#shop{position:fixed;right:clamp(14px,1.7vw,28px);top:clamp(11px,1.3vw,20px);z-index:96;
+  display:inline-flex;align-items:center;gap:.55em;pointer-events:auto;text-decoration:none;
+  color:#fff;background:var(--pur);font-weight:600;font-size:clamp(11px,1.02vw,16px);
+  padding:clamp(8px,.85vw,13px) clamp(13px,1.35vw,22px);border-radius:999px;
+  box-shadow:0 12px 30px rgba(124,58,237,.32);
+  transition:transform .18s ease,box-shadow .18s ease}
+#shop:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(124,58,237,.44)}
+@media (max-width:520px){ #shop .lbl{display:none} #shop{padding:10px;border-radius:50%} }
+#prog{position:fixed;left:0;top:0;height:2px;background:var(--pur);z-index:95;width:0;
+  will-change:width}
+
+/* ── the close ────────────────────────────────────────────────────────*/
+.stack{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:clamp(14px,2.4vh,32px);
+  padding:0 6vw;text-align:center}
+.lock{display:flex;align-items:center;justify-content:center;gap:1.5vw;
+  will-change:transform,opacity}
+.lock img{width:clamp(38px,4.8vw,80px);height:clamp(38px,4.8vw,80px);flex:none;
+  filter:saturate(1.9) brightness(.52) contrast(1.15)}
+.lock .wm{font-size:clamp(27px,5.2vw,86px);font-weight:700;letter-spacing:-.045em;
+  color:#2f1b63}
+.btn{display:inline-block;pointer-events:auto;text-decoration:none;
+  background:var(--pur);color:#fff;font-weight:700;
+  font-size:clamp(15px,1.55vw,24px);padding:clamp(13px,1.3vw,20px) clamp(28px,3vw,52px);
+  border-radius:999px;box-shadow:0 16px 40px rgba(124,58,237,.34);
+  will-change:transform,opacity;transition:transform .18s ease,box-shadow .18s ease}
+.btn:hover{transform:translateY(-2px);box-shadow:0 22px 52px rgba(124,58,237,.44)}
+.blink{display:inline-flex;align-items:center;gap:.5em;pointer-events:auto;
+  text-decoration:none;color:var(--pur);font-weight:600;
+  font-size:clamp(13px,1.35vw,21px);border-bottom:1px solid rgba(124,58,237,.32);
+  padding-bottom:2px;will-change:opacity}
+.blink:hover{border-bottom-color:var(--pur)}
+.cue{display:flex;flex-direction:column;align-items:center;gap:10px;
+  font-size:11px;letter-spacing:.30em;text-transform:uppercase;color:var(--ink-soft);
+  will-change:opacity}
+.cue svg{animation:bob 1.9s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0);opacity:.55}50%{transform:translateY(7px);opacity:1}}
+@media (prefers-reduced-motion:reduce){.cue svg{animation:none}html{scroll-behavior:auto}}
+</style>
+
+<div id="mark"><img src="images/mark.png" alt=""><span>DigitalOman<span style="color:var(--cy)">.ai</span></span></div>
+<a id="shop" href="mailto:contact@digitaloman.ai" aria-label="Contact sales">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M5 8h14l-1.1 11.2a2 2 0 0 1-2 1.8H8.1a2 2 0 0 1-2-1.8z"/>
+    <path d="M9 8V6.2A3 3 0 0 1 12 3a3 3 0 0 1 3 3.2V8"/>
+  </svg><span class="lbl">Get in touch</span></a>
+<div id="prog"></div>
+<main id="film"></main>
+<script>
+/* ══════════════════════════════════════════════════════════════════════
+   Scroll-scrubbed film. Every section pins for its own height and its
+   draw(p) is a pure function of that section's progress, so the motion is
+   wherever the reader's scroll is — forwards, backwards, or flung.
+   ══════════════════════════════════════════════════════════════════════ */
+const film=document.getElementById('film');
+const clamp=(v,a=0,b=1)=>v<a?a:v>b?b:v;
+const lerp=(a,b,u)=>a+(b-a)*u;
+const P=(t,s,d)=>clamp((t-s)/d);
+const eo3=u=>1-Math.pow(1-u,3);
+const eo5=u=>1-Math.pow(1-u,5);
+const eio=u=>u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
+const eob=u=>{const c=1.7,c3=c+1;return 1+c3*Math.pow(u-1,3)+c*Math.pow(u-1,2)};
+const arc=(t,s,d)=>Math.sin(clamp((t-s)/d)*Math.PI);
+const rng=s=>{let x=s>>>0;return()=>{x=(x*1664525+1013904223)>>>0;return x/4294967296}};
+function E(tag,cls,parent,html){const e=document.createElement(tag);
+  if(cls)e.className=cls; if(html!=null)e.innerHTML=html; if(parent)parent.appendChild(e); return e;}
+function px(e,o){for(const k in o)e.style[k]=o[k];}
+const VW=()=>window.innerWidth, VH=()=>window.innerHeight;
+const NARROW=()=>window.innerWidth<780;
+
+const SEC=[], LINES=[], REMEASURE=[];
+function sec(vh){
+  const el=E('section','sec',film); el.style.height=vh+'vh';
+  const stage=E('div','stage',el);
+  stage.style.zIndex=String(SEC.length+1);
+  const o={el,stage,vh,draw:()=>{}}; SEC.push(o); return o;
+}
+
+/* ── the reference's signature move: words arrive one at a time and the
+      whole line re-centres around them. Words are absolutely placed from
+      measured widths, so the line can breathe instead of jumping. ── */
+function line(parent,text,cls){
+  const host=E('div','line',parent), spans=[], list=text.split(' ');
+  let em=false;
+  list.forEach((w,i)=>{
+    let t=w, opened=false, closed=false;
+    if(t[0]==='*'){ opened=true; t=t.slice(1); }
+    const m=/^(.*?)\*([.,!?:;]*)$/.exec(t);
+    if(m){ closed=true; t=m[1]+m[2]; }
+    const on = em || opened;
+    const s=E('span','w '+(cls||''),host);
+    if(on) s.classList.add('pur');
+    s.textContent = t + (i<list.length-1?' ':'');
+    spans.push(s);
+    em = on && !closed;
+  });
+  const o={host,spans,w:[]}; LINES.push(o); return o;
+}
+/* A span inside a display:none stage measures as zero, and zero widths put
+   every word of a line at the same x — the words pile up on one another.
+   Only the very first measuring pass happens with all stages still shown, so
+   any later one (every resize) has to reveal them for the pass, and each line
+   re-measures itself lazily the first time it is drawn at a new width. */
+function measureLine(o){
+  o.w.length=0;
+  for(const s of o.spans){
+    s.style.opacity='0'; s.style.transform='none'; s.style.filter='none';
+    o.w.push(s.getBoundingClientRect().width);
+  }
+  o.lh = o.spans.length ? o.spans[0].getBoundingClientRect().height*1.04 : 40;
+  o.key = VW();
+}
+function measureAll(){
+  const prev=SEC.map(s=>s.stage.style.display);
+  for(const s of SEC) s.stage.style.display='';   // nothing paints in between
+  for(const fn of REMEASURE) fn();
+  for(const o of LINES) measureLine(o);
+  SEC.forEach((s,i)=>{ s.stage.style.display=prev[i]; });
+  layoutW=VW(); layoutH=VH();
+}
+/* show(): per-word presence drives BOTH the reveal and the width it claims,
+   which is what makes the line slide sideways as it grows. */
+function show(o,t,start,step,dur,opt){
+  opt=opt||{};
+  const dy=opt.dy==null?26:opt.dy, out=opt.out, outDur=opt.outDur||.14;
+  if(o.key!==VW() || !(o.lh>0)) measureLine(o);   // drawn ⇒ visible ⇒ measurable
+  const maxW=VW()*(NARROW()?.90:.86);
+  let widest=0; for(const w of o.w) widest=Math.max(widest,w);
+  if(widest<=0) return;                            // nothing measurable yet
+  const fit=Math.min(1,maxW/Math.max(1,widest));   // only shrink if one word can't fit
+  const rows=[]; let row=[], roww=0;
+  for(let i=0;i<o.w.length;i++){
+    const ww=o.w[i]*fit;
+    if(row.length && roww+ww>maxW){ rows.push(row); row=[]; roww=0; }
+    row.push(i); roww+=ww;
+  }
+  if(row.length) rows.push(row);
+  const lh=(o.lh||40)*fit, y0=-(rows.length-1)*lh/2;
+  const gone=out==null?0:eo3(P(t,out,outDur));
+  rows.forEach((idx,ri)=>{
+    let total=0; const cw=[];
+    for(const i of idx){
+      const c=o.w[i]*fit*eio(P(t,start+i*step-dur*.34,dur*.52));
+      cw.push(c); total+=c;
+    }
+    let x=-total/2;
+    idx.forEach((i,k)=>{
+      const u=eo5(P(t,start+i*step,dur)), s=o.spans[i];
+      const op=u*(1-gone);
+      s.style.opacity=op.toFixed(3);
+      if(op<=.002){ s.style.transform='translate(-9999px,0)'; x+=cw[k]; return; }
+      const bl=(1-u)*7+gone*9;
+      s.style.transform=`translate(${x.toFixed(1)}px,-50%) translateY(${(y0+ri*lh+(1-u)*dy-gone*22).toFixed(1)}px) scale(${(fit*lerp(.94,1,u)).toFixed(4)})`;
+      s.style.filter=bl<.06?'none':`blur(${bl.toFixed(2)}px)`;
+      x+=cw[k];
+    });
+  });
+}
+const D={
+ doc:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/>',
+ bill:'<path d="M5 2v20l2-1.5L9 22l2-1.5L13 22l2-1.5L17 22l2-1.5V2l-2 1.5L15 2l-2 1.5L11 2 9 3.5 7 2z"/><path d="M9 8h6M9 12h6M9 16h4"/>',
+ mail:'<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2.5 7.5 9.5 6 9.5-6"/>',
+ users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3.5-3.9"/>',
+ chat:'<path d="M21 14a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+ img:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.8"/><path d="m21 15-5-5L4.5 21"/>',
+ globe:'<circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19"/><path d="M12 2.5a14 14 0 0 1 0 19 14 14 0 0 1 0-19"/>',
+ db:'<ellipse cx="12" cy="5" rx="8.5" ry="3"/><path d="M3.5 5v14c0 1.7 3.8 3 8.5 3s8.5-1.3 8.5-3V5"/><path d="M3.5 12c0 1.7 3.8 3 8.5 3s8.5-1.3 8.5-3"/>',
+ note:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/>',
+ todo:'<path d="M10 6h11M10 12h11M10 18h11"/><path d="m3 6 1.4 1.4L7.2 4.6M3 12l1.4 1.4L7.2 10.6M3 18l1.4 1.4L7.2 16.6"/>',
+ mic:'<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10.5a7 7 0 0 0 14 0M12 17.5V22"/>',
+ cap:'<path d="m2 8.5 10-5 10 5-10 5z"/><path d="M6.5 11v5c0 1.7 2.5 3 5.5 3s5.5-1.3 5.5-3v-5"/>',
+ srch:'<circle cx="11" cy="11" r="7.5"/><path d="m20.5 20.5-4.2-4.2"/>',
+ lock:'<rect x="4" y="10" width="16" height="11" rx="2.2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
+ term:'<rect x="2.5" y="4" width="19" height="16" rx="2"/><path d="m7 10 3 2.5-3 2.5M13 15.5h4"/>',
+ wifi:'<path d="M2 8.5a16 16 0 0 1 20 0M5.5 12.5a11 11 0 0 1 13 0M9 16.5a6 6 0 0 1 6 0"/><circle cx="12" cy="20" r="1.1" fill="currentColor"/>',
+};
+const ico=(n,s,w)=>`<svg width="${s||26}" height="${s||26}" viewBox="0 0 24 24" fill="none"
+  stroke="currentColor" stroke-width="${w||1.6}" stroke-linecap="round" stroke-linejoin="round">${D[n]}</svg>`;
+const IMG=(n,e)=>'images/'+n+'.'+(e||'png');
+const CL=n=>'images/cl-'+n+'.webp';       // this page's own plates
+function plate2(st,name,op,washCss){
+  const d=E('div','plate',st);
+  px(d,{backgroundImage:`url(${CL(name)})`,opacity:String(op==null?1:op)});
+  if(washCss!==null){
+    const w=E('div','wash',st);
+    px(w,{background:washCss||'linear-gradient(180deg,rgba(253,252,255,.80),rgba(253,252,255,.62))'});
+  }
+  return d;
+}
+
+
+/* ═══ S0 · title card ═══════════════════════════════════════════════ */
+{
+ const s=sec(150), st=s.stage;
+ const pl=plate2(st,'coast',1,
+   'linear-gradient(180deg,rgba(253,252,255,.90),rgba(253,252,255,.66) 55%,rgba(249,231,214,.60))');
+ const stack=E('div','stack',st);
+ E('div','kick',stack,'DigitalOman.ai');
+ const lock=E('div','lock',stack);
+ const lg=E('img','',lock); lg.src=IMG('mark');
+ E('div','wm',lock,'Oman Hosted <span class="pur">Cloud AI</span>');
+ const tag=E('div','sub',stack,'Your own model instance, running in Oman.');
+ const cue=E('div','cue',st,
+   '<span>Scroll</span><svg width="20" height="26" viewBox="0 0 24 26" fill="none" '
+   +'stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'
+   +'<path d="M12 3v18M5.5 14.5 12 21l6.5-6.5"/></svg>');
+ px(cue,{position:'absolute',left:'0',right:'0',bottom:'8vh',alignItems:'center'});
+ s.draw=p=>{
+   const go=eio(P(p,.12,.86));
+   px(stack,{opacity:(1-eo3(P(p,.30,.66))).toFixed(3),
+     transform:`scale(${lerp(1,1.14,go).toFixed(4)})`,
+     filter:go>.004?`blur(${(go*18).toFixed(2)}px)`:'none'});
+   cue.style.opacity=(1-eo3(P(p,0,.22))).toFixed(3);
+   px(pl,{transform:`scale(${lerp(1.05,1.18,go).toFixed(4)})`});
+ };
+}
+
+/* ═══ S1 · the invoices ═════════════════════════════════════════════
+   Bills are dealt onto the table one at a time, each a different number
+   and each landing a little crooked — the pile you cannot forecast. */
+{
+ const s=sec(260), st=s.stage;
+ E('div','paperbg',st); const fog=E('div','fog',st);
+ const headBox=E('div','',st);
+ px(headBox,{position:'absolute',left:'0',right:'0',top:'22%',height:'0'});
+ const a=line(headBox,'Metered AI sends a different bill every month.','t-hero');
+ const MON=['MAR','APR','MAY','JUN','JUL','AUG'];
+ const AMT=[184,'1,207',612,'2,458','1,043','2,994'];
+ const R=rng(17);
+ const cards=MON.map((m,i)=>{
+   const d=E('div','inv',st);
+   E('div','m',d,m);
+   E('div','v',d,'$'+AMT[i]);
+   E('div','r',d);
+   return {d,i,rot:(R()-.5)*13,dx:(R()-.5)*.30,dy:(R()-.5)*.16};
+ });
+ s.draw=p=>{
+   show(a,p,.04,.045,.19,{out:.985,outDur:.05});
+   const w=VW(), h=VH(), nb=NARROW();
+   const N=cards.length, cx=w/2, cy=h*.63;
+   /* Dealt into a fan rather than a heap: every month has to stay readable,
+      because the point of the beat is that no two of them agree. */
+   const cols=nb?2:N, rows=Math.ceil(N/cols);
+   const spread=Math.min(w*(nb?.90:.94),1240);
+   /* the cards may kiss, but never far enough to cover a figure */
+   const cw=nb ? Math.min(spread/cols-10,200) : Math.min(spread/N*1.02,206);
+   cards.forEach(c=>{
+     const at=.22+c.i*.095, u=eob(P(p,at,.36));
+     let x,y,rot;
+     if(nb){
+       const col=c.i%cols, row=Math.floor(c.i/cols);
+       x=cx+(col-(cols-1)/2)*(cw+12);
+       y=cy+(row-(rows-1)/2)*(h*.115)-h*.04;
+       rot=c.rot*.35*u;
+     }else{
+       const t=N>1 ? c.i/(N-1)-.5 : 0;          // -0.5 … +0.5 across the fan
+       x=cx+t*(spread-cw);
+       y=cy+Math.pow(Math.abs(t)*2,2)*h*.035-h*.02;
+       rot=t*17*u;
+     }
+     /* each card is dealt in from off-frame right */
+     const fromX=lerp(w*.72,0,u);
+     px(c.d,{width:cw+'px',left:'0',top:'0',
+       opacity:(eo3(P(p,at,.16))*(1-eo3(P(p,.985,.05)))).toFixed(3),
+       transform:`translate(${(x+fromX).toFixed(1)}px,${(y-(1-u)*h*.10).toFixed(1)}px) `
+                +`translate(-50%,-50%) rotate(${rot.toFixed(2)}deg) `
+                +`scale(${lerp(.84,1,u).toFixed(3)})`,
+       zIndex:String(10+c.i)});
+   });
+   px(fog,{opacity:(.55+arc(p,0,1)*.45).toFixed(3),
+     transform:`translateY(${lerp(12,-8,p).toFixed(1)}vh)`});
+ };
+}
+
+/* ═══ S2 · the two lines ════════════════════════════════════════════
+   The whole argument as one chart: a metered bill claws upward and
+   spikes; ours is a straight line you can put in a budget. */
+{
+ const s=sec(280), st=s.stage;
+ const pl=plate2(st,'silk',1,
+   'linear-gradient(180deg,rgba(253,252,255,.92),rgba(253,252,255,.80))');
+ const headBox=E('div','',st);
+ px(headBox,{position:'absolute',left:'0',right:'0',top:'19%',height:'0'});
+ const a=line(headBox,'Ours is a *straight line*.','t-hero');
+ const ch=E('div','chart',st);
+ const NS='http://www.w3.org/2000/svg';
+ const svg=document.createElementNS(NS,'svg'); ch.appendChild(svg);
+ const mk=(t,cls)=>{const e=document.createElementNS(NS,t); e.setAttribute('class',cls);
+   svg.appendChild(e); return e;};
+ const rules=[]; for(let i=0;i<=4;i++) rules.push(mk('line','grid'));
+ const jag=mk('path','jag'), flat=mk('path','flat');
+ /* fractions of the plot box; resolved to pixels each draw so the stroke
+    keeps a true width at every viewport */
+ const JAGY=[.92,.78,.85,.58,.67,.36,.47,.16,.27,.03];
+ const FLATY=.74;
+ function geometry(cw,chh){
+   svg.setAttribute('viewBox',`0 0 ${cw} ${chh}`);
+   svg.setAttribute('width',cw); svg.setAttribute('height',chh);
+   rules.forEach((g,i)=>{
+     const y=(chh/4)*i;
+     g.setAttribute('x1',0); g.setAttribute('x2',cw);
+     g.setAttribute('y1',y); g.setAttribute('y2',y);
+   });
+   jag.setAttribute('d', JAGY.map((v,i)=>
+     `${i?'L':'M'}${(cw*i/(JAGY.length-1)).toFixed(1)} ${(chh*v).toFixed(1)}`).join(' '));
+   flat.setAttribute('d',`M0 ${(chh*FLATY).toFixed(1)} L${cw} ${(chh*FLATY).toFixed(1)}`);
+ }
+ const l1=E('div','clab',st,'metered API'); px(l1,{color:'var(--amber)'});
+ const l2=E('div','clab',st,'50 OMR · flat'); px(l2,{color:'var(--pur)'});
+ s.draw=p=>{
+   show(a,p,.03,.05,.18,{out:.985,outDur:.05});
+   const w=VW(), h=VH(), nb=NARROW();
+   const cwid=Math.min(w*(nb?.86:.66),980), chgt=Math.min(h*.34,320);
+   const cl=(w-cwid)/2, ct=h*(nb?.44:.46);
+   px(ch,{left:cl+'px',top:ct+'px',width:cwid+'px',height:chgt+'px',
+     opacity:(eo3(P(p,.16,.16))*(1-eo3(P(p,.985,.05)))).toFixed(3)});
+   geometry(cwid,chgt);
+   const fs=Math.max(2.5,Math.min(5,cwid*.0042));
+   jag.style.strokeWidth=fs; flat.style.strokeWidth=fs;
+   /* both lines draw left to right, the metered one first */
+   const dj=jag.getTotalLength()||600, df=flat.getTotalLength()||cwid;
+   const uj=eio(P(p,.22,.32)), uf=eio(P(p,.54,.28));
+   jag.style.strokeDasharray=dj; jag.style.strokeDashoffset=(dj*(1-uj)).toFixed(2);
+   flat.style.strokeDasharray=df; flat.style.strokeDashoffset=(df*(1-uf)).toFixed(2);
+   /* each label rides the head of its own line */
+   const jy=(()=>{                       // height at the drawn head
+     const t=uj*(JAGY.length-1), i=Math.min(JAGY.length-2,Math.floor(t));
+     return lerp(JAGY[i],JAGY[i+1],t-i);
+   })();
+   /* the labels ride the head of each line, so near the right edge they
+      would be centred on a point that is already off-frame — keep the whole
+      label inside the viewport instead */
+   const hold=(el,lx)=>{
+     const half=el.offsetWidth/2, m=8;
+     return Math.max(half+m, Math.min(w-half-m, lx));
+   };
+   px(l1,{left:hold(l1,cl+cwid*uj).toFixed(1)+'px',top:(ct+chgt*jy).toFixed(1)+'px',
+     opacity:(eo3(P(p,.30,.14))*(1-eo3(P(p,.985,.05)))).toFixed(3),
+     transform:'translate(-50%,-150%)'});
+   px(l2,{left:hold(l2,cl+cwid*uf).toFixed(1)+'px',top:(ct+chgt*FLATY).toFixed(1)+'px',
+     opacity:(eo3(P(p,.62,.14))*(1-eo3(P(p,.985,.05)))).toFixed(3),
+     transform:'translate(-50%,90%)'});
+ };
+}
+
+/* ═══ S3 · data residency ═══════════════════════════════════════════
+   A boundary closes over the coast; packets run for the edge and are
+   drawn back inside it. */
+{
+ const s=sec(260), st=s.stage;
+ const pl=plate2(st,'coast',1,
+   'linear-gradient(180deg,rgba(253,252,255,.88),rgba(253,252,255,.52) 46%,rgba(253,252,255,.72))');
+ const headBox=E('div','',st);
+ px(headBox,{position:'absolute',left:'0',right:'0',top:'21%',height:'0'});
+ const a=line(headBox,'Inference runs *in Oman*.','t-hero');
+ const sub=E('div','sub',st,'Your prompts and your documents never leave the country.');
+ px(sub,{position:'absolute',left:'0',right:'0',top:'33%',textAlign:'center',
+   padding:'0 8vw',willChange:'opacity'});
+ const wrap=E('div','',st);
+ px(wrap,{position:'absolute',left:'50%',top:'64%',willChange:'opacity'});
+ const ring=E('div','',wrap);
+ px(ring,{position:'absolute',left:'0',top:'0',borderRadius:'50%',
+   border:'2px dashed rgba(124,58,237,.5)',transform:'translate(-50%,-50%)',
+   background:'radial-gradient(circle,rgba(124,58,237,.07),transparent 70%)'});
+ const pin=E('div','',wrap);
+ px(pin,{position:'absolute',left:'0',top:'0',transform:'translate(-50%,-50%)',
+   color:'var(--pur)'});
+ const R=rng(29), pk=[];
+ for(let i=0;i<10;i++){
+   const d=E('div','',wrap);
+   px(d,{position:'absolute',left:'0',top:'0',width:'7px',height:'7px',borderRadius:'50%',
+     background:'var(--pur)',boxShadow:'0 0 10px rgba(124,58,237,.6)'});
+   pk.push({d,ang:R()*Math.PI*2,ph:R()});
+ }
+ s.draw=p=>{
+   px(pl,{transform:`scale(${lerp(1.14,1.03,eio(P(p,0,.9))).toFixed(4)})`});
+   show(a,p,.04,.05,.19,{out:.985,outDur:.05});
+   sub.style.opacity=(eo3(P(p,.28,.16))*(1-eo3(P(p,.985,.05)))*.96).toFixed(3);
+   const rad=Math.min(VW(),VH())*(NARROW()?.28:.19);
+   const grow=eob(P(p,.34,.40));
+   px(ring,{width:(rad*2*grow)+'px',height:(rad*2*grow)+'px',
+     opacity:eo3(P(p,.34,.20)).toFixed(3)});
+   const isz=Math.min(VW(),VH())*(NARROW()?.10:.07);
+   pin.innerHTML=ico('pin',isz,1.6);
+   pin.style.opacity=eo3(P(p,.28,.18)).toFixed(3);
+   pk.forEach((o,i)=>{
+     const u=((p-.42)*1.45+o.ph)%1;
+     const rr=rad*grow*(u<.60 ? u/.60 : 1-(u-.60)/.40*.34);
+     const fade=u<0?0:(u<.60?1:1-(u-.60)/.40);
+     px(o.d,{opacity:(fade*eo3(P(p,.42,.14))*(1-eo3(P(p,.985,.05)))).toFixed(3),
+       transform:`translate(${(Math.cos(o.ang)*rr-3.5).toFixed(1)}px,${(Math.sin(o.ang)*rr-3.5).toFixed(1)}px)`});
+   });
+   wrap.style.opacity=(1-eo3(P(p,.985,.05))).toFixed(3);
+ };
+}
+
+/* ═══ S4 · shared vs yours ══════════════════════════════════════════
+   A split screen: the left fills with other people's work, the right
+   holds one calm block. */
+{
+ const s=sec(270), st=s.stage;
+ const pl=plate2(st,'hall',1,
+   'linear-gradient(180deg,rgba(253,252,255,.90),rgba(253,252,255,.74))');
+ const headBox=E('div','',st);
+ px(headBox,{position:'absolute',left:'0',right:'0',top:'19%',height:'0'});
+ const a=line(headBox,'Not a shared pool. *Yours*.','t-hero');
+ const L=E('div','pane',st), Lin=E('div','paneIn',L);
+ const Rp=E('div','pane',st), Rin=E('div','paneIn',Rp);
+ const div=E('div','divider',st);
+ const lt=E('div','ptag',Lin,'Shared endpoint');
+ px(lt,{color:'#b08968'});
+ const lgrid=E('div','',Lin);
+ px(lgrid,{display:'grid',
+   gap:'clamp(4px,.5vw,8px)',justifyContent:'center'});
+ const R=rng(5), small=[];
+ for(let i=0;i<24;i++){
+   const d=E('div','tile',lgrid);
+   px(d,{background:'rgba(180,132,88,.55)',boxShadow:'0 3px 10px rgba(150,110,70,.18)'});
+   small.push({d,dl:R()*.30});
+ }
+ const lnote=E('div','',Lin,'your work waits its turn');
+ px(lnote,{fontSize:'clamp(13px,3.4vw,22px)',color:'var(--ink-soft)',marginTop:'.6em',
+   textAlign:'center',lineHeight:'1.35',fontWeight:'500'});
+ const rt=E('div','ptag',Rin,'Your instance');
+ px(rt,{color:'var(--pur)'});
+ const big=E('div','tile',Rin);
+ px(big,{
+   background:'linear-gradient(150deg,#a78bfa,#7c3aed)',borderRadius:'14px',
+   boxShadow:'0 22px 54px rgba(124,58,237,.34)'});
+ const rnote=E('div','',Rin,'nothing else runs on it');
+ px(rnote,{fontSize:'clamp(13px,3.4vw,22px)',color:'var(--ink-soft)',marginTop:'.6em',
+   textAlign:'center',lineHeight:'1.35',fontWeight:'500'});
+ s.draw=p=>{
+   px(pl,{opacity:(1-eo3(P(p,.9,.09))).toFixed(3),
+     transform:`scale(${lerp(1.12,1.02,eio(P(p,0,.9))).toFixed(4)})`});
+   show(a,p,.03,.05,.18,{out:.985,outDur:.05});
+   const w=VW(), h=VH(), nb=NARROW(), split=eio(P(p,.20,.34));
+   /* the divider opens from the centre, so the two cases arrive together */
+   px(L,{left:'0',width:(w/2)+'px',opacity:eo3(P(p,.20,.18)).toFixed(3)});
+   px(Rp,{left:(w/2)+'px',width:(w/2)+'px',opacity:eo3(P(p,.20,.18)).toFixed(3)});
+   /* Sized from the pane, not the viewport: each pane is only half the frame,
+      so a viewport-derived size collapses to its floor on a phone. Fewer,
+      larger columns on narrow — the crowd still reads as a crowd, and the
+      tiles stay big enough to see. */
+   const cols=nb?4:6, rows=Math.ceil(small.length/cols);
+   const usable=(w/2)*.84;
+   const kw=usable/(cols+(cols-1)*.28);          // widest cell the pane allows
+   const kh=(h*.34)/(rows+(rows-1)*.28);         // and the tallest it can be
+   const cell=Math.max(15,Math.min(nb?40:34,kw,kh));
+   const gap=Math.max(4,cell*.28);
+   const blockW=cols*cell+(cols-1)*gap;
+   px(lgrid,{gridTemplateColumns:`repeat(${cols},1fr)`,width:blockW+'px',
+     gap:gap.toFixed(1)+'px'});
+   small.forEach(o=>px(o.d,{width:cell+'px',height:cell+'px',
+     borderRadius:Math.max(3,cell*.2)+'px'}));
+   /* one square set against the crowd, scaled to the same block */
+   const bigSz=blockW*.66;
+   px(big,{width:bigSz+'px',height:bigSz+'px',
+     borderRadius:Math.max(10,bigSz*.11)+'px'});
+   /* Both panes start at the same y so the two labels sit on one line. The
+      taller (crowded) column decides where that line is, and it is centred
+      in the room left under the headline. */
+   const rowGap=Math.max(8,Math.min(18,h*.012));
+   const ptagPx=Math.max(13,Math.min(22,w*.039));
+   const notePx=Math.max(13,Math.min(22,w*.034));
+   const gridH=rows*cell+(rows-1)*gap;
+   const blockH=ptagPx*1.28*(nb?2:1)+rowGap+gridH+rowGap+notePx*1.35*(nb?2:1);
+   const clear=h*(nb?.30:.26);                  // below the headline
+   const top=Math.max(clear,(h-blockH)/2);
+   px(Lin,{transform:`translateX(${((1-split)*-w*.10).toFixed(1)}px)`,paddingTop:top+'px'});
+   px(Rin,{transform:`translateX(${((1-split)*w*.10).toFixed(1)}px)`,paddingTop:top+'px'});
+   px(div,{left:(w/2)+'px',opacity:(split*.9).toFixed(3)});
+   small.forEach((o,i)=>{
+     const u=eob(P(p,.34+o.dl,.30));
+     px(o.d,{opacity:(eo3(P(p,.34+o.dl,.22))*.95).toFixed(3),
+       transform:`scale(${lerp(.3,1,u).toFixed(3)})`});
+   });
+   const bu=eob(P(p,.40,.36));
+   px(big,{opacity:eo3(P(p,.40,.22)).toFixed(3),
+     transform:`scale(${lerp(.55,1,bu).toFixed(3)})`});
+   lnote.style.opacity=eo3(P(p,.56,.16)).toFixed(3);
+   rnote.style.opacity=eo3(P(p,.56,.16)).toFixed(3);
+ };
+}
+
+/* ═══ S5 · the price ════════════════════════════════════════════════ */
+{
+ const s=sec(230), st=s.stage;
+ const pl=plate2(st,'dunes',1,
+   'linear-gradient(180deg,rgba(253,252,255,.90),rgba(253,252,255,.62) 60%,rgba(249,231,214,.66))');
+ const stack=E('div','stack',st);
+ const kick=E('div','kick',stack,'One line on the invoice');
+ const big=E('div','',stack,'50 <span style="font-size:.40em;font-weight:600;letter-spacing:0">OMR</span>');
+ px(big,{fontSize:'clamp(56px,12vw,205px)',fontWeight:'700',letterSpacing:'-.05em',
+   lineHeight:'1',color:'var(--pur)',willChange:'transform,opacity'});
+ const per=E('div','sub',stack,'a month, flat — per instance');
+ const foot=E('div','kick',stack,'no metering · no overage · no surprises');
+ px(foot,{color:'var(--ink-soft)',letterSpacing:'.22em'});
+ s.draw=p=>{
+   px(pl,{transform:`scale(${lerp(1.12,1.02,eio(P(p,0,.9))).toFixed(4)})`});
+   const item=(el,at,d)=>{
+     const u=eo5(P(p,at,.30));
+     px(el,{opacity:eo3(P(p,at,.20)).toFixed(3),
+       transform:`translateY(${((1-u)*(d||20)).toFixed(1)}px)`});
+   };
+   item(kick,.10,16);
+   const u=eob(P(p,.20,.42));
+   px(big,{opacity:eo3(P(p,.20,.18)).toFixed(3),
+     transform:`scale(${lerp(.80,1,u).toFixed(3)})`});
+   item(per,.44,20); item(foot,.60,16);
+ };
+}
+
+/* ═══ S6 · the one-line diff ════════════════════════════════════════
+   Not a file typing itself out — a diff. The old line strikes through
+   and the new one is written under it. */
+const DIFF=[
+ ['c','# your existing code'],
+ ['','client = OpenAI('],
+ ['','    api_key  = "…",'],
+ ['-','    base_url = "https://api.openai.com/v1"'],
+ ['+','    base_url = "https://you.cloud.digitaloman.ai/v1"'],
+ ['',')'],
+ ['',''],
+ ['c','# everything below is unchanged'],
+ ['','resp = client.chat.completions.create('],
+ ['','    model    = "your-model",'],
+ ['','    messages = [{"role": "user", "content": "Marhaba"}],'],
+ ['',')'],
+];
+{
+ const s=sec(300), st=s.stage;
+ E('div','paperbg',st); const fog=E('div','fog',st);
+ const headBox=E('div','',st);
+ px(headBox,{position:'absolute',left:'0',right:'0',top:'16%',height:'0'});
+ const a=line(headBox,'Change *one line*.','t-hero');
+ const tm=E('div','term',st);
+ const bar=E('div','bar',tm);
+ ['#ff5f57','#febc2e','#28c840'].forEach(c=>{const d=E('div','dot',bar);d.style.background=c;});
+ E('div','ttl',bar,'openai-compatible');
+ const body=E('div','body',tm,'');
+ const foot=E('div','kick',st,'the SDKs you already use, pointed somewhere else');
+ px(foot,{position:'absolute',left:'0',right:'0',bottom:'7%',textAlign:'center',
+   color:'var(--ink-soft)',letterSpacing:'.2em',willChange:'opacity'});
+ const paint=(txt)=>{
+   const esc=txt.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+   return esc.replace(/(#.*$)|("[^"]*")|\b(client|resp|OpenAI)\b/g,
+     (m,c,q,fn)=> c ? '<span class="c">'+c+'</span>'
+                : q ? '<span class="s">'+q+'</span>'
+                    : '<span class="f">'+fn+'</span>');
+ };
+ s.draw=p=>{
+   const w=VW(), h=VH(), nb=NARROW();
+   const tw=Math.min(w*(nb?.94:.80),1140);
+   px(tm,{left:((w-tw)/2)+'px',top:(h*(nb?.27:.30))+'px',width:tw+'px'});
+   /* `white-space:pre` clips rather than wraps, so the widest line is
+      solved for using the face's measured advance */
+   let maxCh=0; for(const l of DIFF) maxCh=Math.max(maxCh,l[1].length);
+   const pad=Math.max(16,Math.min(34,w*.021))*2;
+   const fs=Math.max(8,Math.min(nb?14:19,(tw-pad)/(maxCh*advance())));
+   px(body,{fontSize:fs.toFixed(2)+'px',
+     padding:`${Math.max(13,Math.min(28,h*.024)).toFixed(0)}px ${(pad/2).toFixed(0)}px`});
+   show(a,p,.03,.05,.18,{out:.985,outDur:.05});
+   const u=eo5(P(p,.16,.30));
+   px(tm,{opacity:(eo3(P(p,.16,.18))*(1-eo3(P(p,.985,.05)))).toFixed(3),
+     transform:`translateY(${((1-u)*44).toFixed(1)}px) scale(${lerp(.96,1,u).toFixed(3)})`});
+   /* context first, then the old line is struck out, then the new one lands */
+   const ctx=P(p,.26,.26), strike=P(p,.56,.14), add=P(p,.66,.22);
+   const html=[];
+   let ctxSeen=0, ctxTotal=0;
+   for(const [k,t] of DIFF) if(k!=='-'&&k!=='+') ctxTotal+=t.length+1;
+   for(const [k,t] of DIFF){
+     if(k==='-'){
+       const on=strike>0;
+       html.push(on?`<span class="del" style="text-decoration-color:rgba(185,69,95,${strike.toFixed(2)})">${paint(t)}</span>`
+                   :paint(t));
+     }else if(k==='+'){
+       const n=Math.floor(add*t.length);
+       html.push(n>0?`<span class="add">${paint(t.slice(0,n))}</span>`
+                    +(n<t.length?'<span class="cur"></span>':''):'');
+     }else{
+       const take=clamp(Math.floor(ctx*ctxTotal)-ctxSeen,0,t.length);
+       html.push(paint(t.slice(0,take)));
+       ctxSeen+=t.length+1;
+     }
+   }
+   body.innerHTML=html.join('\n');
+   foot.style.opacity=(eo3(P(p,.84,.12))*(1-eo3(P(p,.985,.05)))*.95).toFixed(3);
+   px(fog,{opacity:'.5',transform:`translateY(${lerp(10,-6,p).toFixed(1)}vh)`});
+ };
+}
+
+/* ═══ S7 · what "unlimited" actually means ══════════════════════════
+   The honest beat. "Unlimited" is a word buyers have been trained to
+   distrust, so the page draws the line itself: what is uncapped, and —
+   just as prominently — what is not. */
+{
+ const s=sec(300), st=s.stage;
+ const pl=plate2(st,'silk',1,
+   'linear-gradient(180deg,rgba(253,252,255,.94),rgba(253,252,255,.86))');
+ const headBox=E('div','',st);
+ px(headBox,{position:'absolute',left:'0',right:'0',top:'14%',height:'0'});
+ const a=line(headBox,'What *unlimited* means here.','t-hero');
+ const ROWS=[
+  ['y','No request cap',     'Call it as often as you like.'],
+  ['y','No token cap',       'Prompt and completion length are yours to spend.'],
+  ['y','No metering',        'Nothing is counted, so nothing is billed for.'],
+  ['n','Not unlimited speed','The instance runs at its own physical speed.'],
+  ['n','Parallel work queues','Sequential requests are fine; concurrent ones wait.'],
+  ['n','Not elastic',        'Capacity is one real machine, not an autoscaling pool.'],
+ ];
+ const led=E('div','ledger',st);
+ const rows=ROWS.map(r=>{
+   const d=E('div','lrow '+r[0],led);
+   E('div','m',d,r[0]==='y'?'✓':'✕');
+   const t=E('div','',d);
+   E('div','t',t,r[1]); E('div','d',t,r[2]);
+   return d;
+ });
+ const foot=E('div','sub',st,'');
+ foot.innerHTML='The bill is flat. The capacity is a real machine — and it is '
+   +'<em style="color:var(--pur);font-style:normal;font-weight:600">only yours</em>.';
+ px(foot,{position:'absolute',left:'0',right:'0',bottom:'7%',textAlign:'center',
+   padding:'0 7vw',willChange:'opacity'});
+ s.draw=p=>{
+   show(a,p,.03,.05,.18,{out:.985,outDur:.05});
+   rows.forEach((d,i)=>{
+     const at=.20+i*.075, u=eob(P(p,at,.32));
+     px(d,{opacity:(eo3(P(p,at,.20))*(1-eo3(P(p,.985,.05)))).toFixed(3),
+       transform:`translateY(${((1-u)*22).toFixed(1)}px)`});
+   });
+   foot.style.opacity=(eo3(P(p,.78,.14))*(1-eo3(P(p,.985,.05)))*.96).toFixed(3);
+ };
+}
+
+/* ═══ S8 · one endpoint, everything docks onto it ═══════════════════ */
+{
+ const s=sec(260), st=s.stage;
+ const pl=plate2(st,'desk',1,
+   'linear-gradient(180deg,rgba(253,252,255,.92),rgba(253,252,255,.80))');
+ const headBox=E('div','',st);
+ px(headBox,{position:'absolute',left:'0',right:'0',top:'20%',height:'0'});
+ const a=line(headBox,'One endpoint. *Everywhere you build*.','t-hero');
+ const spine=E('div','spine',st);
+ const cap=E('div','',st,'your-instance.cloud.digitaloman.ai');
+ px(cap,{position:'absolute',fontFamily:'"JetBrains Mono",monospace',
+   fontSize:'clamp(9px,1vw,16px)',color:'var(--pur)',whiteSpace:'nowrap',
+   willChange:'opacity',textAlign:'center',left:'0',right:'0'});
+ const T=['DigitalOman.ai app','Desktop application','Your own scripts',
+          'Your web apps','Any OpenAI SDK','Your back office'];
+ const nodes=T.map((t,i)=>({d:E('div','node',st,t), w:E('div','wire',st), i}));
+ s.draw=p=>{
+   show(a,p,.04,.05,.19,{out:.985,outDur:.05});
+   const w=VW(), h=VH(), nb=NARROW();
+   const sy=h*(nb?.60:.62);
+   const sw=Math.min(w*(nb?.72:.42),620), sh=Math.max(4,Math.min(8,h*.008));
+   const grow=eio(P(p,.14,.30));
+   px(spine,{left:((w-sw*grow)/2)+'px',top:(sy-sh/2)+'px',
+     width:(sw*grow)+'px',height:sh+'px',
+     opacity:(eo3(P(p,.14,.16))*(1-eo3(P(p,.985,.05)))).toFixed(3)});
+   px(cap,{top:(sy+sh+Math.min(h*.022,18))+'px',
+     opacity:(eo3(P(p,.30,.16))*(1-eo3(P(p,.985,.05)))).toFixed(3)});
+   /* A grid above the spine — columns keep the labels from colliding, rows
+      keep them clear of the headline. Each slides in from its own side and
+      drops a wire onto the spine. */
+   const cols=nb?2:3, rows=Math.ceil(nodes.length/cols);
+   const spread=Math.min(w*(nb?.94:.86),1080);
+   const slot=spread/cols;
+   const topY=h*(nb?.34:.33);                 // clear of the headline
+   const gapY=Math.max(34,(sy-topY)/rows);
+   nodes.forEach(n=>{
+     const at=.26+n.i*.07, u=eob(P(p,at,.34));
+     const col=n.i%cols, row=Math.floor(n.i/cols);
+     const x=w/2+(col-(cols-1)/2)*slot;
+     const y=sy-gapY*(rows-row);
+     const fromLeft=x<=w/2;
+     const off=(fromLeft?-1:1)*w*.22*(1-u);
+     const o=eo3(P(p,at,.22))*(1-eo3(P(p,.985,.05)));
+     px(n.d,{left:'0',top:'0',maxWidth:(slot*.94).toFixed(0)+'px',opacity:o.toFixed(3),
+       transform:`translate(${(x+off).toFixed(1)}px,${y.toFixed(1)}px) translate(-50%,-50%)`});
+     const drop=Math.max(0,sy-y);
+     px(n.w,{left:x.toFixed(1)+'px',top:y.toFixed(1)+'px',
+       width:'2px',height:(drop*eio(P(p,at+.06,.28))).toFixed(1)+'px',
+       transform:'translateX(-1px)',opacity:(o*.45).toFixed(3)});
+   });
+ };
+}
+
+/* ═══ S9 · close ════════════════════════════════════════════════════ */
+{
+ const s=sec(330), st=s.stage;
+ const pl=plate2(st,'fort',1,
+   'linear-gradient(180deg,rgba(253,252,255,.86),rgba(253,252,255,.60) 50%,rgba(253,252,255,.82))');
+ const stack=E('div','stack',st);
+ const kick=E('div','kick',stack,'Oman Hosted Cloud AI');
+ const row=E('div','lock',stack);
+ const lg=E('img','',row); lg.src=IMG('mark');
+ E('div','wm',row,'DigitalOman<span class="pur">.ai</span>');
+ const tag=E('div','',stack,'Your model. Your machine. In Oman. 50 OMR a month.');
+ px(tag,{fontSize:'clamp(15px,2.2vw,36px)',fontWeight:'500',color:'#4a3585',
+   willChange:'opacity,transform'});
+ const btn=E('a','btn',stack,'Contact Us');
+ btn.href='mailto:contact@digitaloman.ai';
+ const desk=E('a','blink',stack,
+   'Desktop Application'
+   +'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+   +' stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
+   +'<path d="M5 12h13M12 5.5 18.5 12 12 18.5"/></svg>');
+ desk.href='https://desktop.digitaloman.ai';
+ desk.target='_blank'; desk.rel='noopener';
+ s.draw=p=>{
+   px(pl,{opacity:eo3(P(p,0,.20)).toFixed(3),
+     transform:`scale(${lerp(1.16,1.02,eio(P(p,0,.9))).toFixed(4)})`});
+   const item=(el,at,d)=>{
+     const u=eo5(P(p,at,.30));
+     px(el,{opacity:eo3(P(p,at,.20)).toFixed(3),
+       transform:`translateY(${((1-u)*(d||20)).toFixed(1)}px)`});
+   };
+   const u=eob(P(p,.20,.34));
+   px(row,{opacity:eo3(P(p,.20,.20)).toFixed(3),
+     transform:`scale(${lerp(.88,1,u).toFixed(3)})`});
+   item(kick,.14,14); item(tag,.40,22); item(btn,.56,20); item(desk,.68,16);
+ };
+}
+
+/* JetBrains Mono advances a fixed fraction of its em; measure it once so
+   the code card can be fitted to any frame without guessing. */
+let _adv=0;
+function advance(){
+  if(_adv) return _adv;
+  const p=E('span','mono',document.body,'0'.repeat(100));
+  px(p,{position:'absolute',left:'-9999px',top:'0',fontSize:'100px',whiteSpace:'pre'});
+  const w=p.getBoundingClientRect().width; p.remove();
+  _adv = w>0 ? (w/100)/100 : 0.6;
+  return _adv;
+}
+/* ═══ driver ═══════════════════════════════════════════════════════ */
+const prog=document.getElementById('prog');
+const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let target=0, cur=0, ready=false;
+
+/* One continuous timeline: T = section index + that section's progress.
+   Stages are fixed and cross-dissolve across the seam, so a section hands
+   over to the next the way a cut does — nothing slides out of frame. */
+function globalT(y){
+  const last=SEC.length-1;
+  for(let i=0;i<SEC.length;i++){
+    const s=SEC[i], top=s.el.offsetTop;
+    /* the final section is the only one with nothing after it, so its last
+       viewport-worth of height is unreachable — measure it against what can
+       actually be scrolled, or it never reaches p = 1 */
+    const h=Math.max(1, i===last ? s.el.offsetHeight-VH() : s.el.offsetHeight);
+    if(y<top) return i;
+    if(y<top+h) return i+(y-top)/h;
+  }
+  return SEC.length-1e-4;
+}
+function draw(){
+  const y=cur, vh=VH(), T=globalT(y), last=SEC.length-1;
+  for(let i=0;i<SEC.length;i++){
+    const s=SEC[i];
+    const inn = i===0 ? 1 : P(T,i-.055,.075);
+    const out = i===last ? 0 : P(T,i+.985,.070);
+    const vis = Math.min(inn,1-out);
+    if(vis<=.003){ s.stage.style.display='none'; continue; }
+    s.stage.style.display='';
+    s.stage.style.opacity=vis.toFixed(3);
+    s.draw(clamp(T-i));
+  }
+  const max=Math.max(1,document.documentElement.scrollHeight-vh);
+  prog.style.width=(clamp(y/max)*100).toFixed(2)+'%';
+}
+function tick(){
+  if(ready){
+    cur += (target-cur)*(REDUCED?1:.16);
+    if(Math.abs(target-cur)<.35) cur=target;
+    draw();
+  }
+  requestAnimationFrame(tick);
+}
+let layoutW=0, layoutH=0;
+function relayout(){ measureAll(); cur=target=window.scrollY; draw(); }
+
+addEventListener('scroll',()=>{ target=window.scrollY; },{passive:true});
+let rt; addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(()=>{
+  const w=VW(), h=VH();
+  if(w!==layoutW || Math.abs(h-layoutH)>layoutH*.35) relayout();
+  else { layoutH=h; draw(); }                     // address-bar churn: just redraw
+},140); });
+addEventListener('orientationchange',()=>{ clearTimeout(rt); rt=setTimeout(relayout,220); });
+
+(async () => {
+  const urls=new Set();
+  document.querySelectorAll('img').forEach(i=>urls.add(i.getAttribute('src')));
+  urls.add(IMG('mark'));
+  for(const n of ['coast','silk','hall','dunes','desk','fort']) urls.add(CL(n));
+  await Promise.all([...urls].map(u=>new Promise(r=>{
+    const i=new Image(); i.onload=i.onerror=r; i.src=u;
+  })));
+  try{ await document.fonts.ready; }catch(e){}
+  ready=true; relayout();
+  document.body.dataset.ready='1';
+})();
+tick();
+</script>
